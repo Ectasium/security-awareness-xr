@@ -26,8 +26,7 @@ class ARExperience {
         this.init();
     }
     
-    async init() {
-        
+    async init() {        
         // hide end page initially
         document.getElementById('endPage').style.display = 'none';
         
@@ -284,108 +283,87 @@ class ARExperience {
             }
         });
         
-        // Handle window resize
+        this.setupInteraction();
+        
         window.addEventListener('resize', () => this.onWindowResize());
     }  
     
-    startScene() {
+    startScene() {         
+        this.experienceStarted = true;
+        console.log('Starting cybersecurity experience...');
+        //In the start scene we load the models and the text plate
         
         // Initial text plate creation
-        this.createTextPlate('Start!', {
+        this.createTextPlate('Look around , click START to begin', {
             backgroundColor: 0x3366cc,
-            width: 0.5,
+            width: 0.3,
             height: 0.2,
-            yOffset: -0.29  // Slightly below center
+            yOffset: -0.2  // Slightly below center
         });        
         
-        // Position and add models to scene
-        
+        // Position and add models to scene        
         // Start button
         this.startButtonModel.position.set(0, -1, -1.0); // 1m in front
         this.scene.add(this.startButtonModel);
-        
-        // Wendy model
-        this.wendy.visible = false;
-        this.wendy.position.set(0, -1, -1.5); // 1m in front
-        this.scene.add(this.wendy);
-        
-        // Mendy model
-        this.mendy.visible = false;
-        this.mendy.position.set(0, -1, 1.5); // 1m behind
-        this.scene.add(this.mendy);
-        
-        // Pause button
-        this.pauseButtonModel.visible = false;
-        this.pauseButtonModel.position.set(0, -1.5, -1.0); // Top right, 1m in front
-        this.scene.add(this.pauseButtonModel);
-        
-        // Next button - fix variable name from nextModel to nextButtonModel
-        this.nextButtonModel.visible = false;
-        this.nextButtonModel.position.set(0.5, -1, -1.0); // Center-bottom, 1m in front
-        this.scene.add(this.nextButtonModel);
-
         this.makeModelClickable(this.startButtonModel, () => {
             console.log('Start button clicked!');
             this.firstScene();
-        });
-        
-        // Setup interaction for interactive elements
-        this.setupInteraction();
-        
-        console.log('Scene ready - should be visible');
+        });      
     }    
     
-    firstScene() {
-        this.experienceStarted = true;
-        console.log('Starting cybersecurity experience...');
+    firstScene() {       
         
         // Hide start button
         this.startButtonModel.visible = false;
         
-        // Show Wendy and pause button
-        this.wendy.visible = true;
-        this.pauseButtonModel.visible = true;
-
-        this.makeModelClickable(this.pauseButtonModel, () => {
-            console.log('Pause button clicked!');
-            this.togglePause();
-        });
-
+       // Wendy model
+       this.wendy.visible = true;
+       this.wendy.position.set(0, -1, -1.5); // 1m in front
+        this.scene.add(this.wendy);
         this.makeModelClickable(this.wendy, (model) => {
             console.log('Wendy was clicked!');
-            // You could add additional effects when Wendy is clicked
             if (this.textPlate) {
                 this.textPlate.updateText("Wendy says: Hey, this tickles!!");
             }            
         });
-
+        if (this.textPlate) {
+            this.textPlate.updateText('Wendy is talking about cybersecurity. Click the pause button or press P to pause.');
+          } 
+        // Play Wendy audio
+        this.loadAudio('./assets/audio/voice_placeholder.mp3');
+        
+       
+       // Mendy model
+       this.mendy.visible = false;
+       this.mendy.position.set(0, -1, 1.5); // 1m behind
+        this.scene.add(this.mendy);
         this.makeModelClickable(this.mendy, (model) => {
             console.log('Mendy was clicked!');
             // You could add additional effects when Mendy is clicked
             if (this.textPlate) {
                 this.textPlate.updateText("Mendy says: Leave me alone ...");
             }     
+        });        
+       
+       // Pause button
+       this.pauseButtonModel.visible = false;
+       this.pauseButtonModel.position.set(0, -1.5, -1.0); // Top right, 1m in front
+        this.scene.add(this.pauseButtonModel);
+        this.makeModelClickable(this.pauseButtonModel, () => {
+            console.log('Pause button clicked!');
+            this.togglePause();
         });
-
+       
+       // Next button
+       this.nextButtonModel.visible = false;
+       this.nextButtonModel.position.set(0.5, -1, -1.0); // Center-bottom, 1m in front
+        this.scene.add(this.nextButtonModel);
         this.makeModelClickable(this.nextButtonModel, () => {
             console.log('Next button clicked!');
             this.handleNext();
-        });      
-      
-        
-        if (this.textPlate) {
-            this.textPlate.updateText('Wendy is talking about cybersecurity. Click the pause button or press P to pause.');
-          }
-
-        // Play audio
-        this.wendyAudio.play().catch(error => {
-            console.error('Audio play failed:', error);
-            // Fallback timer
-            setTimeout(() => this.endWendySpeech(), 10000);
-        });
-    }   
+        });        
+    }     
     
-     //Updated setupInteraction to use the new makeModelClickable method
      setupInteraction() {
         // Setup WebXR controller
         this.controller = this.renderer.xr.getController(0);
@@ -608,41 +586,6 @@ class ARExperience {
                 }
             }
         };
-    }      
-   
-    setupFallbackMode() {
-        // For non-AR devices - position camera manually
-        console.log('Setting up fallback 3D mode');
-        this.camera.position.set(0, 0, 0);
-        
-        // Add mouse/touch controls for fallback
-        // Setup pointer-based camera controls
-        let isPointerDown = false;
-        let pointerX = 0;
-        let pointerY = 0;
-        
-        const onPointerMove = (event) => {
-            if (!isPointerDown) return;
-            
-            const deltaX = event.clientX - pointerX;
-            const deltaY = event.clientY - pointerY;
-            
-            this.camera.rotation.y -= deltaX * 0.005;
-            this.camera.rotation.x -= deltaY * 0.005;
-            this.camera.rotation.x = Math.max(-Math.PI/2, Math.min(Math.PI/2, this.camera.rotation.x));
-            
-            pointerX = event.clientX;
-            pointerY = event.clientY;
-        };
-        
-        document.addEventListener('pointerdown', (event) => {
-            isPointerDown = true;
-            pointerX = event.clientX;
-            pointerY = event.clientY;
-        });
-        
-        document.addEventListener('pointermove', onPointerMove);
-        document.addEventListener('pointerup', () => { isPointerDown = false; });
     }    
         
     scaleModel(model, targetSize) {
@@ -678,21 +621,23 @@ class ARExperience {
         console.log('Pause button placeholder created');
     }     
     
-    loadAudio() {
-        this.wendyAudio = new Audio('./assets/audio/voice_placeholder.mp3');
+    loadAudio(audioPath) {
+        this.wendyAudio = new Audio(audioPath);
         this.wendyAudio.preload = 'auto';
         
         this.wendyAudio.addEventListener('ended', () => {
-            console.log('Wendy audio finished');
+            console.log(`Audio finished: ${audioPath}`);
             this.endWendySpeech();
         });
         
         this.wendyAudio.addEventListener('error', (e) => {
-            console.error('Audio error:', e);
+            console.error(`Audio error loading ${audioPath}:`, e);
         });
         
-        console.log('Audio loaded');
-    }    
+        console.log(`Audio loaded: ${audioPath}`);
+        return this.wendyAudio;
+    }
+    
 
     createTextPlate(text, options = {}) {
         // Default options
@@ -1196,12 +1141,10 @@ class ARExperience {
                 // Start fresh
                 this.init();
             });
-        }
-        
+        }        
         // Remove window resize listener
         window.removeEventListener('resize', this.onWindowResize);
-    }    
-    
+    }      
     
     idleMove(model, timestamp, amplitude = 0.05, speed = 0.001, axis = 'y') {
         if (!model || !model.visible) return;

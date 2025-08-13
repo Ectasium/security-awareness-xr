@@ -432,7 +432,7 @@ class ARExperience {
                     
                     await this.renderer.xr.setSession(this.session);
                     this.isXRActive = true;                
-                    
+                    this.adjustCameraForVR();
                     // Set up XR controller (moved from setupInteraction)
                     // this.controller = this.renderer.xr.getController(0);
                     // this.scene.add(this.controller);
@@ -545,6 +545,22 @@ class ARExperience {
                 pointerUp: handlePointerUp
             };
         }
+        // ⭐ NEW: VR-specific camera positioning for Meta Quest optimization
+        ARExperience.prototype.adjustCameraForVR = function() {
+            if (this.isXRActive) {
+                console.log('📐 Adjusting camera for VR headset');
+                // Meta Quest users are typically seated or standing
+                // Adjust camera height to match typical VR setup
+                this.camera.position.y = 1.6; // Standard eye level for standing user
+                this.camera.position.x = 0;
+                this.camera.position.z = 0;
+                console.log(`🥽 VR camera positioned at height: ${this.camera.position.y}m`);
+            } else {
+                console.log('📱 Using mobile/desktop camera positioning');
+                // For mobile AR and desktop fallback
+                this.camera.position.set(0, 0.7, 0); // Lower for mobile viewing
+            }
+        };
     }
   
 

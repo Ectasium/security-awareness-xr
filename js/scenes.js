@@ -1,6 +1,4 @@
-// scenes.js - Scene management and story flow
-
-// ============== NEW SCENE MANAGEMENT SYSTEM ==============
+// scenes.js - Scene management and story flow (Refactored)
 
 ARExperience.prototype.startExperience = function() {
     console.log('🎬 Starting AR Experience...');
@@ -22,31 +20,46 @@ ARExperience.prototype.goToScene = function(sceneName) {
     }
 };
 
-// ⭐ NEW: Updated for user-relative positioning
-ARExperience.prototype.addModelsToScene = function(modelConfigs, useUserPosition = true) {
-    modelConfigs.forEach(config => {
-        const model = this[config.name];
-        if (model) {
-            if (useUserPosition && config.distance) {
-                // Use new relative positioning system
-                this.positionRelativeToUser(model, {
-                    distance: config.distance || 3,
-                    angle: config.angle || 0,
-                    height: config.height || 0,
-                    faceUser: config.faceUser !== false
-                });
-            } else {
-                // Fallback to absolute positioning
-                model.position.set(config.x || 0, config.y || 0, config.z || -7);
-            }
-            
-            if (config.rotation) model.rotation.y = config.rotation;
-            this.scene.add(model);
-            model.name = config.name;
-        } else {
-            console.warn(`⚠️ Model ${config.name} not found`);
-        }
-    });
+ARExperience.prototype.positionRelativeToUser = function(model, config = {}) {
+    if (!model || !this.camera) return;
+    
+    const {
+        distance = 3,
+        angle = 0,
+        height = 0,
+        faceUser = true
+    } = config;
+    
+    const cameraPosition = this.camera.position.clone();
+    const cameraDirection = new THREE.Vector3();
+    this.camera.getWorldDirection(cameraDirection);
+    
+    const baseAngle = Math.atan2(cameraDirection.x, cameraDirection.z);
+    const finalAngle = baseAngle + angle;
+    
+    const x = cameraPosition.x + Math.sin(finalAngle) * distance;
+    const z = cameraPosition.z + Math.cos(finalAngle) * distance;
+    const y = cameraPosition.y + height;
+    
+    model.position.set(x, y, z);
+    
+    if (faceUser) {
+        model.lookAt(cameraPosition);
+    }
+    
+    return model;
+};
+
+// Story positions for easy use
+ARExperience.prototype.STORY_POSITIONS = {
+    FRONT: 0,
+    FRONT_RIGHT: Math.PI / 4,
+    RIGHT: Math.PI / 2,
+    BACK_RIGHT: (3 * Math.PI) / 4,
+    BEHIND: Math.PI,
+    BACK_LEFT: (-3 * Math.PI) / 4,
+    LEFT: -Math.PI / 2,
+    FRONT_LEFT: -Math.PI / 4
 };
 
 ARExperience.prototype.showNextButton = function(targetScene) {
@@ -55,11 +68,10 @@ ARExperience.prototype.showNextButton = function(targetScene) {
         return;
     }
 
-    // ⭐ CHANGED: Position button relative to user instead of fixed position
     this.positionRelativeToUser(this.nextButtonModel, {
         distance: 1.5,
         angle: this.STORY_POSITIONS.FRONT,
-        height: -0.3, // Slightly below eye level
+        height: -0.3,
         faceUser: true
     });
     
@@ -79,43 +91,49 @@ ARExperience.prototype.showNextButton = function(targetScene) {
 // ============== INDIVIDUAL SCENES ==============
 
 ARExperience.prototype.scene1 = function() {    
-        
-    // Initial text plate creation
     this.createTextPlate('Welcome - use START below to begin', {
         backgroundColor: 0x3366cc,
         width: 0.5,
         height: 0.2,
-        yOffset: 0.29  // Slightly below center
+        yOffset: 0.29
     });    
     
     this.playAudio('audioIntroMsg');
 
-    // ⭐ CHANGED: Position start button relative to user
-    this.positionRelativeToUser(this.startButtonModel, {
-        distance: 1.5,
-        angle: this.STORY_POSITIONS.FRONT,
-        height: -0.5, // Below eye level for easy clicking
-        faceUser: true
-    });
+    // Start Button
+    if (this.startButtonModel) {
+        this.positionRelativeToUser(this.startButtonModel, {
+            distance: 1.5,
+            angle: this.STORY_POSITIONS.FRONT,
+            height: -0.5,
+            faceUser: true
+        });
+        
+        this.scaleModel(this.startButtonModel, 1);
+        this.startButtonModel.visible = true;
+        this.scene.add(this.startButtonModel);
+        this.startButtonModel.name = "startButtonModel";
+        console.log('✅ Start button added to scene');
+    }
     
-    this.scaleModel(this.startButtonModel, 1);
-    this.scene.add(this.startButtonModel);  
-    
-    // ⭐ CHANGED: Position Wendy NT relative to user (behind for surprise)
-    this.positionRelativeToUser(this.wendyNTModel, {
-        distance: 4,
-        angle: this.STORY_POSITIONS.BEHIND,
-        height: 0,
-        faceUser: true
-    });
-    
-    this.scene.add(this.wendyNTModel);     
-    this.wendyNTModel.name = "wendyNTModel";
+    // Wendy NT Model
+    if (this.wendyNTModel) {
+        this.positionRelativeToUser(this.wendyNTModel, {
+            distance: 4,
+            angle: this.STORY_POSITIONS.BEHIND,
+            height: 0,
+            faceUser: true
+        });
+        
+        this.wendyNTModel.visible = true;
+        this.scene.add(this.wendyNTModel);     
+        this.wendyNTModel.name = "wendyNTModel";
+        console.log('✅ Wendy NT added to scene');
 
-    this.playModelAnimation('wendyNTModel', 'humping');
+        this.playModelAnimation('wendyNTModel', 'humping');
+    }
         
     this.makeModelClickable(this.startButtonModel, () => {
-        // Move Wendy up and away
         const cameraPos = this.camera.position;
         this.moveModel("wendyNTModel", 
             {x: cameraPos.x + 1, y: cameraPos.y + 10, z: cameraPos.z - 5.5},  
@@ -123,15 +141,14 @@ ARExperience.prototype.scene1 = function() {
         );  
 
         setTimeout(() => {
-            this.wendyNTModel.visible = false;
-            this.startButtonModel.visible = false;
+            if (this.wendyNTModel) this.wendyNTModel.visible = false;
+            if (this.startButtonModel) this.startButtonModel.visible = false;
             this.goToScene('scene2');
         }, 2000);
     });         
 };
 
 ARExperience.prototype.scene2 = function() {     
-
     this.createTextPlate('Chapter 1: 3D Video', {
        backgroundColor: 0x3366cc,
         width: 0.5,
@@ -139,78 +156,21 @@ ARExperience.prototype.scene2 = function() {
         yOffset: 0.29
     });    
 
-    // ⭐ CHANGED: Use storytelling-based positioning for immersive experience
+    // Position scene 2 models
     const scene2Models = [
-        // Main cafe scene front and center
-        { 
-            name: 'cafeModelS3', 
-            distance: 4,
-            angle: this.STORY_POSITIONS.FRONT,
-            height: 0
-        },
-        // Documents positioned for easy viewing
-        { 
-            name: 'doc1Model', 
-            distance: 2.5,
-            angle: this.STORY_POSITIONS.FRONT_LEFT,
-            height: 0.5
-        },
-        { 
-            name: 'doc2Model', 
-            distance: 2.5,
-            angle: this.STORY_POSITIONS.FRONT_RIGHT,
-            height: 0.5
-        },
-        // Wendy as main character, close and personal
-        { 
-            name: 'wendyModel', 
-            distance: 2,
-            angle: this.STORY_POSITIONS.FRONT,
-            height: 0
-        },
-        // Mendy behind user for surprise effect
-        { 
-            name: 'mendyModel', 
-            distance: 2.5,
-            angle: this.STORY_POSITIONS.BEHIND,
-            height: 0
-        },
-        // Words floating around user in a circle
-        { 
-            name: 'word1Model', 
-            distance: 3.5,
-            angle: this.STORY_POSITIONS.LEFT,
-            height: 1
-        },
-        { 
-            name: 'word2Model', 
-            distance: 3.5,
-            angle: this.STORY_POSITIONS.FRONT,
-            height: 1.5
-        },
-        { 
-            name: 'word3Model', 
-            distance: 3.5,
-            angle: this.STORY_POSITIONS.RIGHT,
-            height: 1
-        },
-        // Sunglasses close for interaction
-        { 
-            name: 'sunglassesModel', 
-            distance: 1.8,
-            angle: this.STORY_POSITIONS.FRONT_RIGHT,
-            height: 0.3
-        },
-        // Wendy with glasses to the side
-        { 
-            name: 'wendyGlassesModelS3', 
-            distance: 3,
-            angle: this.STORY_POSITIONS.RIGHT,
-            height: 0
-        }
+        { name: 'cafeModelS3', distance: 4, angle: this.STORY_POSITIONS.FRONT, height: 0 },
+        { name: 'doc1Model', distance: 2.5, angle: this.STORY_POSITIONS.FRONT_LEFT, height: 0.5 },
+        { name: 'doc2Model', distance: 2.5, angle: this.STORY_POSITIONS.FRONT_RIGHT, height: 0.5 },
+        { name: 'wendyModel', distance: 2, angle: this.STORY_POSITIONS.FRONT, height: 0 },
+        { name: 'mendyModel', distance: 2.5, angle: this.STORY_POSITIONS.BEHIND, height: 0 },
+        { name: 'word1Model', distance: 3.5, angle: this.STORY_POSITIONS.LEFT, height: 1 },
+        { name: 'word2Model', distance: 3.5, angle: this.STORY_POSITIONS.FRONT, height: 1.5 },
+        { name: 'word3Model', distance: 3.5, angle: this.STORY_POSITIONS.RIGHT, height: 1 },
+        { name: 'sunglassesModel', distance: 1.8, angle: this.STORY_POSITIONS.FRONT_RIGHT, height: 0.3 },
+        { name: 'wendyGlassesModelS3', distance: 3, angle: this.STORY_POSITIONS.RIGHT, height: 0 }
     ];
 
-    // Position all models using new system
+    let modelsAdded = 0;
     scene2Models.forEach(config => {
         const model = this[config.name];
         if (model) {
@@ -220,21 +180,31 @@ ARExperience.prototype.scene2 = function() {
                 height: config.height,
                 faceUser: true
             });
+            model.visible = true;
             this.scene.add(model);
             model.name = config.name;
+            modelsAdded++;
+            console.log(`✅ Added ${config.name} to scene 2`);
+        } else {
+            console.warn(`❌ Model ${config.name} not found or not loaded yet`);
         }
     });
     
-    this.playback3D(this.scene2ModelAnimations, this.scene2AudioTracks, 10);
+    console.log(`📊 Scene 2: Added ${modelsAdded}/${scene2Models.length} models`);
     
-    const estimatedDuration = 35000; // 35 seconds
+    // Play scene 2 animations and audio (defined in loadScene2Resources)
+    if (this.scene2ModelAnimations && this.scene2AudioTracks) {
+        this.playback3D(this.scene2ModelAnimations, this.scene2AudioTracks, 10);
+    } else {
+        console.warn('⚠️ Scene 2 animations or audio tracks not loaded yet');
+    }
+    
     setTimeout(() => {       
          this.showNextButton('scene3');        
-    }, estimatedDuration);
+    }, 35000); // 35 seconds
 };
 
 ARExperience.prototype.scene3 = function() {    
-      
     this.createTextPlate('Welcome to the Quiz!', {
         backgroundColor: 0x3366cc,
         width: 0.5,
@@ -244,63 +214,30 @@ ARExperience.prototype.scene3 = function() {
 
     this.playAudio('audioQuizIntro');
     
-    // ⭐ CHANGED: Position quiz elements in a circle around user for VR comfort
+    // Position quiz elements
     const quizModels = [
-        // Wendy as quiz host in front
-        { 
-            name: 'wendyNTModel', 
-            distance: 3,
-            angle: this.STORY_POSITIONS.FRONT,
-            height: 0,
-            startHidden: false
-        },
-        // Quiz options positioned around user in hexagon pattern
-        { 
-            name: 'laptopModel', 
-            distance: 2.5,
-            angle: this.STORY_POSITIONS.FRONT_RIGHT,
-            height: 0.2
-        },
-        { 
-            name: 'tabletModel', 
-            distance: 2.5,
-            angle: this.STORY_POSITIONS.RIGHT,
-            height: 0.2
-        },
-        { 
-            name: 'tableModel', 
-            distance: 2.5,
-            angle: this.STORY_POSITIONS.BACK_RIGHT,
-            height: 0.2
-        },
-        { 
-            name: 'flatTableModel', 
-            distance: 2.5,
-            angle: this.STORY_POSITIONS.BACK_LEFT,
-            height: 0.2
-        },
-        { 
-            name: 'notebookModel', 
-            distance: 2.5,
-            angle: this.STORY_POSITIONS.LEFT,
-            height: 0.2
-        }
+        { name: 'wendyNTModel', distance: 3, angle: this.STORY_POSITIONS.FRONT, height: 0, startHidden: false },
+        { name: 'laptopModel', distance: 2.5, angle: this.STORY_POSITIONS.FRONT_RIGHT, height: 0.2 },
+        { name: 'tabletModel', distance: 2.5, angle: this.STORY_POSITIONS.RIGHT, height: 0.2 },
+        { name: 'tableModel', distance: 2.5, angle: this.STORY_POSITIONS.BACK_RIGHT, height: 0.2 },
+        { name: 'flatTableModel', distance: 2.5, angle: this.STORY_POSITIONS.BACK_LEFT, height: 0.2 },
+        { name: 'notebookModel', distance: 2.5, angle: this.STORY_POSITIONS.LEFT, height: 0.2 }
     ];
 
-    // Position and animate quiz models
+    let modelsAdded = 0;
     quizModels.forEach(config => {
         const model = this[config.name];
         if (model) {
             if (config.startHidden !== false) {
                 // Start hidden, then animate into position
                 const hiddenPos = this.camera.position.clone();
-                hiddenPos.y += 10; // High above user
+                hiddenPos.y += 10;
                 model.position.copy(hiddenPos);
                 model.visible = true;
                 this.scene.add(model);
                 model.name = config.name;
+                modelsAdded++;
                 
-                // Animate to final position
                 setTimeout(() => {
                     this.positionRelativeToUser(model, {
                         distance: config.distance,
@@ -310,50 +247,48 @@ ARExperience.prototype.scene3 = function() {
                     });
                 }, 1000);
             } else {
-                // Position immediately
                 this.positionRelativeToUser(model, {
                     distance: config.distance,
                     angle: config.angle,
                     height: config.height,
                     faceUser: true
                 });
+                model.visible = true;
                 this.scene.add(model);
                 model.name = config.name;
+                modelsAdded++;
             }
+            console.log(`✅ Added ${config.name} to scene 3`);
+        } else {
+            console.warn(`❌ Model ${config.name} not found or not loaded yet`);
         }
     });
     
-    // Quiz interactions
-    this.makeModelClickable(this.laptopModel, () => {
-        console.log('💻 Laptop clicked!');
-        this.playAudio('audioCorrectAnswer'); 
-        this.playModelAnimation('wendyNTModel', 'humping');
-        this.showNextButton('scene4');
-    });   
-
-    this.makeModelClickable(this.notebookModel, () => {
-        console.log('📓 Notebook clicked!');
-        this.playAudio('audioWrongAnswer');       
-    });  
-
-    this.makeModelClickable(this.tableModel, () => {
-        console.log('🪑 Table clicked!');
-        this.playAudio('audioWrongAnswer');       
-    });  
-
-    this.makeModelClickable(this.flatTableModel, () => {
-        console.log('📋 Flat Table clicked!');
-        this.playAudio('audioWrongAnswer');       
-    }); 
+    console.log(`📊 Scene 3: Added ${modelsAdded}/${quizModels.length} models`);
     
-    this.makeModelClickable(this.tabletModel, () => {
-        console.log('📱 Tablet clicked!');
-        this.playAudio('audioWrongAnswer');       
-    });    
+    // Quiz interactions
+    if (this.laptopModel) {
+        this.makeModelClickable(this.laptopModel, () => {
+            console.log('💻 Laptop clicked!');
+            this.playAudio('audioCorrectAnswer'); 
+            this.playModelAnimation('wendyNTModel', 'humping');
+            this.showNextButton('scene4');
+        });
+    }
+
+    const wrongAnswerModels = ['notebookModel', 'tableModel', 'flatTableModel', 'tabletModel'];
+    wrongAnswerModels.forEach(modelName => {
+        const model = this[modelName];
+        if (model) {
+            this.makeModelClickable(model, () => {
+                console.log(`❌ ${modelName} clicked! Wrong answer.`);
+                this.playAudio('audioWrongAnswer');       
+            });
+        }
+    });
 };
 
 ARExperience.prototype.scene4 = function() {
-   
     this.createTextPlate('Thanks for looking around - use QUIT below to finish', {
         backgroundColor: 0x3366cc,
         width: 0.5,
@@ -361,22 +296,26 @@ ARExperience.prototype.scene4 = function() {
         yOffset: 0.29
     });   
 
-    // ⭐ CHANGED: Position quit button relative to user
-    this.positionRelativeToUser(this.quitButtonModel, {
-        distance: 1.5,
-        angle: this.STORY_POSITIONS.FRONT,
-        height: -0.5, // Below eye level
-        faceUser: true
-    });
-    
-    this.scaleModel(this.quitButtonModel, 0.3);      
-    this.scene.add(this.quitButtonModel);  
+    // Quit Button
+    if (this.quitButtonModel) {
+        this.positionRelativeToUser(this.quitButtonModel, {
+            distance: 1.5,
+            angle: this.STORY_POSITIONS.FRONT,
+            height: -0.5,
+            faceUser: true
+        });
+        
+        this.scaleModel(this.quitButtonModel, 0.3);
+        this.quitButtonModel.visible = true;
+        this.scene.add(this.quitButtonModel);
+        console.log('✅ Quit button added to scene');
 
-    this.makeModelClickable(this.quitButtonModel, () => {
-        this.finishAR();
-    });
+        this.makeModelClickable(this.quitButtonModel, () => {
+            this.finishAR();
+        });
+    }
 
-    // ⭐ CHANGED: Position farewell Wendy to the side
+    // Farewell Wendy
     if (this.wendyModel) {
         this.positionRelativeToUser(this.wendyModel, {
             distance: 3,
@@ -384,67 +323,60 @@ ARExperience.prototype.scene4 = function() {
             height: 0,
             faceUser: true
         });
+        this.wendyModel.visible = true;
         this.scene.add(this.wendyModel);
+        console.log('✅ Wendy farewell added to scene');
     }
 };
-
-// ============== LEGACY METHODS (IMPROVED) ==============
 
 ARExperience.prototype.clearScene = function() {
     console.log('🧹 Clearing scene - hiding all assets');
 
-    const hideSafely = (obj) => {
-        if (!obj) return;
-        
-        obj.visible = false;
-        if (obj.parent) { 
-            obj.parent.remove(obj); 
-        }
-        console.log(`Hidden: ${obj.name || obj.type}`);
-    };
-
     if (this.scene) {
         [...this.scene.children].forEach(object => {                
-            // PRESERVE XR COMPONENTS DURING SCENE TRANSITIONS
+            // Preserve essential XR and lighting components
             if (object.type.includes('Light') || 
                 object.type === 'PerspectiveCamera' ||
-                object === this.controller ||           // Don't remove XR controller!
-                object === this.raycasterLine ||        // Don't remove ray!
-                (this.uiGroup && object === this.uiGroup)) {  // Don't remove UI
+                object === this.controller ||
+                object === this.raycasterLine ||
+                (this.uiGroup && object === this.uiGroup)) {
                 return;
             }
             
-            hideSafely(object);
+            object.visible = false;
+            if (object.parent) { 
+                object.parent.remove(object); 
+            }
         });
     }
 
-    // Don't clear interaction map completely - preserve XR controller interactions
+    // Clean up stale interactions
     if (this.modelInteractions) {
         const modelsToRemove = [];
         this.modelInteractions.forEach((data, model) => {
-            // Only remove interactions for models that are actually being cleaned up
-            if (!model.parent || (!model.visible && 
-                model.name !== 'nextButtonModel' && 
-                model.name !== 'startButtonModel')) {
+            if (!model.parent || !model.visible) {
                 modelsToRemove.push(model);
             }
         });
         modelsToRemove.forEach(model => {
             this.modelInteractions.delete(model);
         });
-        console.log(`🧹 Cleaned up ${modelsToRemove.length} stale interactions, ${this.modelInteractions.size} remaining`);
     }
 
-    // Don't reset animation callbacks in XR mode (they might be needed for controller updates)
-    if (!this.isXRActive && this._animationCallbacks) {
-        this._animationCallbacks = [];        
+    // Clean up animation mixers
+    if (this.mixers) {
+        this.mixers.forEach(mixer => {
+            try { 
+                mixer.stopAllAction(); 
+                if (mixer.uncacheRoot) {
+                    mixer.uncacheRoot(mixer.getRoot());
+                }
+            } catch(e) {
+                console.warn('Error cleaning up mixer:', e);
+            }
+        });
+        this.mixers = [];
     }
-   
-    this.mixers?.forEach(mixer => {
-        try { mixer.stopAllAction(); mixer.uncacheRoot?.(mixer.getRoot()); } 
-        catch(e) {}
-    });
-    this.mixers = [];
     
-    console.log('✅ Scene cleared (XR components preserved)');
+    console.log('✅ Scene cleared');
 };

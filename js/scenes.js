@@ -71,9 +71,9 @@ ARExperience.prototype.scene1 = function() {
     
     this.playAudio('audioIntroMsg');
   
-    //this.startButtonModel.position.set(0, 0, 0);  // Reset first
+    // this.startButtonModel.position.set(0, 0, 0);  // Reset first
     this.startButtonModel.scale.set(1, 1, 1);
-    this.startButtonModel.position.set(0, 0, -1.5);  // Then position
+    this.startButtonModel.position.set(0, 1, -1.5);  // Raised from 0 to 1.2
 
     this.scaleModel(this.startButtonModel, 1);// 1m in front
     this.scene.add(this.startButtonModel);  
@@ -312,4 +312,3 @@ ARExperience.prototype.clearScene = function() {
     
     console.log('✅ Scene cleared (XR components preserved)');
 };
-

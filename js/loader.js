@@ -1,5 +1,3 @@
-// core.js - Main class initialization and WebXR setup with batched loading
-
 class ARExperience {
     constructor() {
         this.scene = null;
@@ -859,6 +857,3 @@ setupMouseTouchInteraction() {
         this.renderer.render(this.scene, this.camera);
     }
 }
-
-
-

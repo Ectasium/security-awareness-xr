@@ -131,7 +131,7 @@ ARExperience.prototype.moveModel = function(modelName, targetPos, speed) {
     };
 };
 
-ARExperience.prototype.playModelAnimation = function(modelName, animationName) {
+ARExperience.prototype.playModelAnimation = function(modelName, ...animationNames) {
     // Get the GLB object that contains the animations
     const glbProperty = modelName + 'GLB';
     const glbObject = this[glbProperty];
@@ -146,14 +146,6 @@ ARExperience.prototype.playModelAnimation = function(modelName, animationName) {
         return;
     }
     
-    // Find the animation by name
-    const animation = glbObject.animations.find(anim => anim.name === animationName);
-    
-    if (!animation) {
-        console.warn(`Animation '${animationName}' not found in '${glbProperty}'. Available: ${glbObject.animations.map(a => a.name).join(', ')}`);
-        return;
-    }
-    
     // Get the model scene
     const model = this[modelName];
     if (!model) {
@@ -161,12 +153,8 @@ ARExperience.prototype.playModelAnimation = function(modelName, animationName) {
         return;
     }
     
-    // Create mixer and play the animation
+    // Create mixer once for all animations
     const mixer = new THREE.AnimationMixer(model);
-    const action = mixer.clipAction(animation);
-
-    action.setLoop(THREE.LoopOnce);
-    action.clampWhenFinished = true;
     
     // Store mixer for updates in render loop
     if (!this.mixers) {
@@ -174,10 +162,26 @@ ARExperience.prototype.playModelAnimation = function(modelName, animationName) {
     }
     this.mixers.push(mixer);
     
-    // Play the animation
-    action.play();
-    
-    console.log(`Playing animation '${animationName}' on model '${modelName}'`);
+    // Play each animation
+    animationNames.forEach(animationName => {
+        // Find the animation by name
+        const animation = glbObject.animations.find(anim => anim.name === animationName);
+        
+        if (!animation) {
+            console.warn(`Animation '${animationName}' not found in '${glbProperty}'. Available: ${glbObject.animations.map(a => a.name).join(', ')}`);
+            return;
+        }
+        
+        // Create action and play the animation
+        const action = mixer.clipAction(animation);
+        action.setLoop(THREE.LoopOnce);
+        action.clampWhenFinished = true;
+        
+        // Play the animation
+        action.play();
+        
+        console.log(`Playing animation '${animationName}' on model '${modelName}'`);
+    });
 };
 
 

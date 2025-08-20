@@ -222,9 +222,11 @@ ARExperience.prototype.playModelAnimation = function(modelName, ...animationName
     }
     this.mixers.push(mixer);
     
+    // Define facial animations
+    const facialAnimations = ['SMILE', 'talking', 'Eye_left_', 'eye_closed_1Action', 'left_eye', 'right_eye'];
+    
     // Play each animation
-    animationNames.forEach(animationName => {
-        // Find the animation by name
+    animationNames.forEach((animationName) => {
         const animation = glbObject.animations.find(anim => anim.name === animationName);
         
         if (!animation) {
@@ -232,12 +234,22 @@ ARExperience.prototype.playModelAnimation = function(modelName, ...animationName
             return;
         }
         
-        // Create action and play the animation
         const action = mixer.clipAction(animation);
-        action.setLoop(THREE.LoopOnce);
-        action.clampWhenFinished = true;
         
-        // Play the animation
+        // Check if this is a facial animation
+        if (facialAnimations.includes(animationName)) {
+            // Set looping for facial animations (10 times)
+            action.setLoop(THREE.LoopRepeat, 10);
+            action.weight = 1.0; // Full weight for facial animations
+            console.log(`Playing facial animation '${animationName}' 10 times with full weight`);
+        } else {
+            // Body animations play once
+            action.setLoop(THREE.LoopOnce);
+            action.weight = 0.8; // Slightly lower weight for body animations
+            console.log(`Playing body animation '${animationName}' once with weight 0.8`);
+        }
+        
+        action.clampWhenFinished = true;
         action.play();
         
         console.log(`Playing animation '${animationName}' on model '${modelName}'`);

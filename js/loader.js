@@ -216,6 +216,10 @@ async loadScene1Resources() {
        this.wendyNTModelGLB = await loadGLB('./assets/models/wendyNTModel.glb', 'WendyNT');
        this.wendyNTModel = this.wendyNTModelGLB.scene;
 
+       // ADD WENDY NO JUMP FOR SCENE 3
+       this.wendyNoMoveGLB = await loadGLB('./assets/models/Wendy-no-move.glb', 'Wendy No Move');
+       this.wendyNoMove = this.wendyNoMoveGLB.scene;
+
         this.nextButtonModelGLB = await loadGLB('./assets/models/nextButtonModel.glb', 'Next Button');
         this.nextButtonModel = this.nextButtonModelGLB.scene;
 

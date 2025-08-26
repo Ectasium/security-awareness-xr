@@ -135,7 +135,7 @@ ARExperience.prototype.scene2 = function() {
     
     this.playback3D(this.scene2ModelAnimations, this.scene2AudioTracks, 0);
 
-    const estimatedDuration = 35000; // 35 seconds
+    const estimatedDuration = 1000; // 35 seconds
     setTimeout(() => {       
         this.showNextButton('scene3');        
     }, estimatedDuration);
@@ -155,7 +155,7 @@ ARExperience.prototype.scene3 = function() {
     this.playAudio('audioQuizIntro');
     
    this.addModelsToScene([
-        { name: 'wendyNTModel', x: -10, y: -10, z: -5, rotation: -Math.PI / 2}, 
+        { name: 'wendyNoMove', x: -10, y: -10, z: -5, rotation: -Math.PI / 2}, 
         { name: 'A_bird', x: 10, y: 10, z: -5, rotation: -Math.PI / 2 + Math.PI / 9 - Math.PI / 18 - Math.PI / 18 + Math.PI / 4 },
         { name: 'C_sofa', x: 10, y: 10, z: 5, rotation: -3 * Math.PI / 4 - (140 * Math.PI / 180) - (10 * Math.PI / 180) + Math.PI / 4 },
         { name: 'D_park', x: 10, y: 10, z: -5, rotation: -Math.PI + (35 * Math.PI / 180) - (45 * Math.PI / 180) - (30 * Math.PI / 180) - (20 * Math.PI / 180) - (10 * Math.PI / 180) - Math.PI / 4 },
@@ -163,8 +163,8 @@ ARExperience.prototype.scene3 = function() {
         { name: 'Quiz_text1', x: 10, y: 10, z: -5}   
     ]);    
     
-    this.wendyNTModel.visible = true; 
-this.moveModel("wendyNTModel", 
+    this.wendyNoMove.visible = true; 
+this.moveModel("WendyNoMove", 
     {x: 0, y: 0.7, z: -5},  // Was -7, now -5
     8                   
 );
@@ -204,7 +204,7 @@ this.Quiz_text1.scale.set(1.2, 1.2, 1.2);
     this.makeModelClickable(this.B_laptop, () => {       
         this.playAudio('audioCorrectAnswer'); 
         this.playModelAnimation('B_laptop' , 'sb_check_b_Action');
-        this.playModelAnimation('wendyNTModel', 'Jumping');
+        this.playModelAnimation('wendyNoMove', 'Jumping');
         this.showNextButton('scene4');
     });    
 

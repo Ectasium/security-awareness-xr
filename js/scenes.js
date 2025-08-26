@@ -70,7 +70,6 @@ ARExperience.prototype.scene1 = function() {
     });    
     
     this.playAudio('audioIntroMsg');
-<<<<<<< HEAD
     
     // IMPORTANT: Reset button parent and ensure it's in world space
     if (this.startButtonModel.parent) {
@@ -81,12 +80,6 @@ ARExperience.prototype.scene1 = function() {
     this.startButtonModel.position.set(0, 0, -2.5);  // Position in front
     this.startButtonModel.rotation.set(0, 0, 0); // Reset rotation
     this.startButtonModel.updateMatrixWorld(true); // Force update
-=======
-  
-    // this.startButtonModel.position.set(0, 0, 0);  // Reset first
-    this.startButtonModel.scale.set(1, 1, 1);
-    this.startButtonModel.position.set(0, 0, -1.5);  // Raised from 0 to 1.2
->>>>>>> d980ffd4886ac98500f528225f37b7b5caebefd4
 
     this.scaleModel(this.startButtonModel, 1);
     this.scene.add(this.startButtonModel);  
@@ -104,13 +97,6 @@ ARExperience.prototype.scene1 = function() {
         this.playModelAnimation('wendyJump', 'Romy-WendyAction');
     }, 2000); // 2s delay just about for the jump
 
-<<<<<<< HEAD
-=======
-    this.playModelAnimation('wendyNTModel', 'Jumping', 'SMILE', 'talking');
-
-
-        
->>>>>>> d980ffd4886ac98500f528225f37b7b5caebefd4
     this.makeModelClickable(this.startButtonModel, () => {
         this.moveModel("wendyJump", 
             {x: 1, y: 10, z: -6.5},  
@@ -172,7 +158,7 @@ ARExperience.prototype.scene3 = function() {
 
     this.playAudio('audioQuizIntro');
     
-    // ✅ KEPT YOUR EXACT POSITIONING - quiz models around user
+    // ✅ CHANGED: Use wendyNoMove instead of wendyNTModel
     this.addModelsToScene([
         { name: 'wendyNoMove', x: -10, y: -10, z: -5, rotation: 0}, 
         { name: 'A_bird', x: 10, y: 10, z: -5, rotation: -Math.PI / 2 + Math.PI / 9 - Math.PI / 18 - Math.PI / 18 + Math.PI / 4 },
@@ -182,7 +168,7 @@ ARExperience.prototype.scene3 = function() {
         { name: 'Quiz_text1', x: 10, y: 10, z: -5}   
     ]);    
     
-    // ✅ KEPT YOUR EXACT MOVEMENT ANIMATIONS
+    // ✅ CHANGED: Use wendyNoMove instead of wendyNTModel for movement
     this.wendyNoMove.visible = true; 
     this.moveModel("wendyNoMove", 
         {x: 0, y: 0.7, z: -5},  // In front
@@ -220,13 +206,13 @@ ARExperience.prototype.scene3 = function() {
     );
     this.Quiz_text1.scale.set(1.2, 1.2, 1.2);    
 
-    // ✅ KEPT YOUR EXACT QUIZ INTERACTIONS
+    // ✅ CHANGED: Use wendyNoMove instead of wendyNTModel for quiz interactions
     this.makeModelClickable(this.B_laptop, () => {       
         this.playAudio('audioCorrectAnswer'); 
         this.playModelAnimation('B_laptop' , 'sb_check_b_Action');
         this.playModelAnimation('wendyNoMove', 'Jumping'); // Changed from wendyNTModel
         this.showNextButton('scene4');
-    });   
+    });    
 
     this.makeModelClickable(this.A_bird, () => {       
         this.playAudio('audioWrongAnswer'); 
@@ -338,8 +324,4 @@ ARExperience.prototype.clearScene = function() {
     this.mixers = [];
     
     console.log('✅ Scene cleared (XR components preserved)');
-<<<<<<< HEAD
 };
-=======
-};
->>>>>>> d980ffd4886ac98500f528225f37b7b5caebefd4

@@ -1,4 +1,4 @@
-// animations.js - Animation, movement, and UI
+// animations.js - Animation, movement, and UI (Conservative cleanup)
 console.log('animations.js loading...');
 
 ARExperience.prototype.moveModel = function(modelName, targetPos, speed) {
@@ -179,8 +179,6 @@ ARExperience.prototype.playModelAnimation = function(modelName, animationName) {
     
     console.log(`Playing animation '${animationName}' on model '${modelName}'`);
 };
-
-
 
 ARExperience.prototype.idleMove = function(model, timestamp, amplitude = 0.05, speed = 0.001, axis = 'y') {
     if (!model || !model.visible) return;
@@ -476,22 +474,11 @@ ARExperience.prototype.createTextPlate = function(text, options = {}) {
     return this.textPlate;
 };
 
-ARExperience.prototype.togglePause = function(audio, textPlate = null) {
-    if (audio.paused) {
-        audio.play();
-        if (textPlate) {
-            textPlate.updateText('Playing audio');
-        }
-    } else {
-        audio.pause();
-        if (textPlate) {
-            textPlate.updateText('Audio paused – click again to resume');
-        }
-    }
-};
+// ❌ REMOVED: togglePause() function - never used in your scenes
+// ARExperience.prototype.togglePause = function(audio, textPlate = null) { ... }
 
 ARExperience.prototype.showModelsAnimations = function() {
-console.log('📋 Loaded Models and Animations Overview');
+    console.log('📋 Loaded Models and Animations Overview');
     console.log('=======================================\n');
 
     const loadedModels = [];
@@ -530,4 +517,4 @@ console.log('📋 Loaded Models and Animations Overview');
     });
 
     return loadedModels;
-}
+};

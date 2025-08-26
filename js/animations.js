@@ -1,5 +1,65 @@
-// animations.js - Animation, movement, and UI
+// animations.js - Animation, movement, and UI (Conservative cleanup)
 console.log('animations.js loading...');
+
+// ⭐ NEW: User-relative positioning for optimal VR/AR experience
+ARExperience.prototype.positionRelativeToUser = function(model, config = {}) {
+    if (!model || !this.camera) return;
+    
+    const {
+        distance = 3,
+        angle = 0,          // 0 = front, Math.PI = behind, Math.PI/2 = right, -Math.PI/2 = left
+        height = 0,         // relative to user eye level
+        faceUser = true     // whether model should look at user
+    } = config;
+    
+    const cameraPosition = this.camera.position.clone();
+    const cameraDirection = new THREE.Vector3();
+    this.camera.getWorldDirection(cameraDirection);
+    
+    // Calculate base angle from camera direction
+    const baseAngle = Math.atan2(cameraDirection.x, cameraDirection.z);
+    const finalAngle = baseAngle + angle;
+    
+    // Calculate position
+    const x = cameraPosition.x + Math.sin(finalAngle) * distance;
+    const z = cameraPosition.z + Math.cos(finalAngle) * distance;
+    const y = cameraPosition.y + height;
+    
+    model.position.set(x, y, z);
+    
+    if (faceUser) {
+        model.lookAt(cameraPosition);
+    }
+    
+    console.log(`📍 Positioned ${model.name} relative to user at distance ${distance}m`);
+    return model;
+};
+
+// ⭐ NEW: Story positions for easy use
+ARExperience.prototype.STORY_POSITIONS = {
+    FRONT: 0,
+    FRONT_RIGHT: Math.PI / 4,
+    RIGHT: Math.PI / 2,
+    BACK_RIGHT: (3 * Math.PI) / 4,
+    BEHIND: Math.PI,
+    BACK_LEFT: (-3 * Math.PI) / 4,
+    LEFT: -Math.PI / 2,
+    FRONT_LEFT: -Math.PI / 4
+};
+
+// ⭐ NEW: Audio helper for consistent playback
+ARExperience.prototype.playAudio = function(audioName) {
+    const audio = this[audioName];
+    if (audio instanceof Audio) {
+        audio.currentTime = 0; // Reset to beginning
+        audio.play().catch(error => {
+            console.warn(`Audio playback failed for ${audioName}:`, error);
+        });
+        console.log(`🔊 Playing: ${audioName}`);
+    } else {
+        console.warn(`Audio ${audioName} not found or not loaded yet`);
+    }
+};
 
 ARExperience.prototype.moveModel = function(modelName, targetPos, speed) {
     // Find the model in the scene
@@ -131,7 +191,7 @@ ARExperience.prototype.moveModel = function(modelName, targetPos, speed) {
     };
 };
 
-ARExperience.prototype.playModelAnimation = function(modelName, animationName) {
+ARExperience.prototype.playModelAnimation = function(modelName, ...animationNames) {
     // Get the GLB object that contains the animations
     const glbProperty = modelName + 'GLB';
     const glbObject = this[glbProperty];
@@ -146,14 +206,6 @@ ARExperience.prototype.playModelAnimation = function(modelName, animationName) {
         return;
     }
     
-    // Find the animation by name
-    const animation = glbObject.animations.find(anim => anim.name === animationName);
-    
-    if (!animation) {
-        console.warn(`Animation '${animationName}' not found in '${glbProperty}'. Available: ${glbObject.animations.map(a => a.name).join(', ')}`);
-        return;
-    }
-    
     // Get the model scene
     const model = this[modelName];
     if (!model) {
@@ -161,12 +213,8 @@ ARExperience.prototype.playModelAnimation = function(modelName, animationName) {
         return;
     }
     
-    // Create mixer and play the animation
+    // Create mixer once for all animations
     const mixer = new THREE.AnimationMixer(model);
-    const action = mixer.clipAction(animation);
-
-    action.setLoop(THREE.LoopOnce);
-    action.clampWhenFinished = true;
     
     // Store mixer for updates in render loop
     if (!this.mixers) {
@@ -174,13 +222,39 @@ ARExperience.prototype.playModelAnimation = function(modelName, animationName) {
     }
     this.mixers.push(mixer);
     
-    // Play the animation
-    action.play();
+    // Define facial animations
+    const facialAnimations = ['SMILE', 'talking', 'Eye_left_', 'eye_closed_1Action', 'left_eye', 'right_eye'];
     
-    console.log(`Playing animation '${animationName}' on model '${modelName}'`);
+    // Play each animation
+    animationNames.forEach((animationName) => {
+        const animation = glbObject.animations.find(anim => anim.name === animationName);
+        
+        if (!animation) {
+            console.warn(`Animation '${animationName}' not found in '${glbProperty}'. Available: ${glbObject.animations.map(a => a.name).join(', ')}`);
+            return;
+        }
+        
+        const action = mixer.clipAction(animation);
+        
+        // Check if this is a facial animation
+        if (facialAnimations.includes(animationName)) {
+            // Set looping for facial animations (10 times)
+            action.setLoop(THREE.LoopRepeat, 10);
+            action.weight = 1.0; // Full weight for facial animations
+            console.log(`Playing facial animation '${animationName}' 10 times with full weight`);
+        } else {
+            // Body animations play once
+            action.setLoop(THREE.LoopOnce);
+            action.weight = 0.8; // Slightly lower weight for body animations
+            console.log(`Playing body animation '${animationName}' once with weight 0.8`);
+        }
+        
+        action.clampWhenFinished = true;
+        action.play();
+        
+        console.log(`Playing animation '${animationName}' on model '${modelName}'`);
+    });
 };
-
-
 
 ARExperience.prototype.idleMove = function(model, timestamp, amplitude = 0.05, speed = 0.001, axis = 'y') {
     if (!model || !model.visible) return;
@@ -476,22 +550,11 @@ ARExperience.prototype.createTextPlate = function(text, options = {}) {
     return this.textPlate;
 };
 
-ARExperience.prototype.togglePause = function(audio, textPlate = null) {
-    if (audio.paused) {
-        audio.play();
-        if (textPlate) {
-            textPlate.updateText('Playing audio');
-        }
-    } else {
-        audio.pause();
-        if (textPlate) {
-            textPlate.updateText('Audio paused – click again to resume');
-        }
-    }
-};
+// ❌ REMOVED: togglePause() function - never used in your scenes
+// ARExperience.prototype.togglePause = function(audio, textPlate = null) { ... }
 
 ARExperience.prototype.showModelsAnimations = function() {
-console.log('📋 Loaded Models and Animations Overview');
+    console.log('📋 Loaded Models and Animations Overview');
     console.log('=======================================\n');
 
     const loadedModels = [];
@@ -530,4 +593,4 @@ console.log('📋 Loaded Models and Animations Overview');
     });
 
     return loadedModels;
-}
+};

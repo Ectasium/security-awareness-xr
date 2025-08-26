@@ -8,17 +8,18 @@
 </head>
 <body>
     <!-- Landing Page -->
-   <div class="landing-page" id="landingPage" style="text-align: center; margin: 0 auto; width: 100%;">
+    <div class="landing-page" id="landingPage">
         <div style="margin-bottom: 1rem;">
             <img src="./assets/images/startscreen.png" alt="" style="width: 50%; height: auto; display: inline-block;">
         </div>
         <div style="margin-bottom: 1rem;">
-            <button class="start-button" id="startButton" style="display: inline-block;">Start</button>
+            <button class="start-button" id="startButton">Start</button>
         </div>
-        <p class="device-note" style="text-align: center;">Note: Best experienced with an WebXR compatible device</p>
+        <p class="device-note">Note: Best experienced with an WebXR compatible device</p>
     </div>
 
-    <div class="landing-page" id="endPage">
+    <!-- End Page (initially hidden) -->
+    <div class="landing-page" id="endPage" style="display: none;">
         <h1>That's all Folks!</h1>
         <p class="subtitle">Want to dive in again? Use button RESTART</p>
         <button class="start-button" id="restartButton">Restart</button>      
@@ -30,13 +31,13 @@
     </div>
 
     <!-- Scripts -->
-<script src="https://unpkg.com/three@0.128.0/build/three.min.js"></script>
-<script src="https://unpkg.com/three@0.128.0/examples/js/loaders/GLTFLoader.js"></script>
-<script src="js/loader.js"></script>
-<script src="js/utilities.js"></script>
-<script src="js/interactions.js"></script>
-<script src="js/animations.js"></script>
-<script src="js/scenes.js"></script>        
-<script src="js/main.js"></script>
+    <script src="https://unpkg.com/three@0.128.0/build/three.min.js"></script>
+    <script src="https://unpkg.com/three@0.128.0/examples/js/loaders/GLTFLoader.js"></script>
+    <script src="js/loader.js"></script>
+    <script src="js/utilities.js"></script>
+    <script src="js/interactions.js"></script>
+    <script src="js/animations.js"></script>
+    <script src="js/scenes.js"></script>        
+    <script src="js/main.js"></script>
 </body>
 </html>

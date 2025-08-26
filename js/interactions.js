@@ -1,4 +1,4 @@
-// interactions.js - User interaction handling
+// interactions.js - User interaction handling (Conservative cleanup)
 console.log('interactions.js loading...');
 
 ARExperience.prototype.makeModelClickable = function(model, callback, once = false) {
@@ -12,6 +12,12 @@ ARExperience.prototype.makeModelClickable = function(model, callback, once = fal
         this.modelInteractions = new Map();
     }
     
+    // ✅ MINIMAL ADDITION: Better debug logging (helps with troubleshooting)
+    console.log(`🎯 Making ${model.name || 'model'} clickable`);
+    console.log(`📍 Model position: x:${model.position.x.toFixed(2)}, y:${model.position.y.toFixed(2)}, z:${model.position.z.toFixed(2)}`);
+    console.log(`👁️ Model visible: ${model.visible}`);
+    console.log(`🌍 Model in scene: ${this.scene.children.includes(model)}`);
+    
     // Register the model with its callback
     this.modelInteractions.set(model, {
         callback,
@@ -19,6 +25,10 @@ ARExperience.prototype.makeModelClickable = function(model, callback, once = fal
         active: true,
         triggered: false
     }); 
+    
+    // ✅ MINIMAL ADDITION: Confirm registration
+    console.log(`✅ Interaction registered for ${model.name || 'model'}`);
+    console.log(`📊 Total interactive models: ${this.modelInteractions.size}`);
     
     // Return methods to control this interactive model
     return {
@@ -65,7 +75,7 @@ ARExperience.prototype.checkInteractions = function(raycaster) {
             if (this.modelInteractions.has(currentObj)) {
                 const data = this.modelInteractions.get(currentObj);
                 if (data.active && (!data.once || !data.triggered)) {
-                    console.log(`Model clicked: ${currentObj.name || 'unnamed'}`);
+                    console.log(`🎯 Model clicked: ${currentObj.name || 'unnamed'}`);
                     data.callback(currentObj, intersect);
                     
                     if (data.once) {
@@ -80,6 +90,8 @@ ARExperience.prototype.checkInteractions = function(raycaster) {
 };
 
 ARExperience.prototype.createRaycasterRay = function() {
+    console.log('🔴 Creating raycaster ray...');
+    
     // Create a simple line geometry
     const points = [
         new THREE.Vector3(0, 0, 0),
@@ -87,15 +99,22 @@ ARExperience.prototype.createRaycasterRay = function() {
     ];
     const geometry = new THREE.BufferGeometry().setFromPoints(points);
     
-    // Create material - default red
+    // Create material - default red, ✅ MINIMAL CHANGE: slightly thicker for visibility
     const material = new THREE.LineBasicMaterial({ 
         color: 0xff0000,
-        linewidth: 2
+        linewidth: 3  // Was 2, now 3 for better visibility in WebXR emulator
     });
     
     // Create line and add to controller
     this.raycasterLine = new THREE.Line(geometry, material);
-    this.controller.add(this.raycasterLine);
+    
+    // ✅ MINIMAL ADDITION: Safety check
+    if (this.controller) {
+        this.controller.add(this.raycasterLine);
+        console.log('✅ Raycaster ray added to controller');
+    } else {
+        console.warn('⚠️ No controller found for raycaster ray');
+    }
 };
 
 ARExperience.prototype.updateRaycastRay = function() {
@@ -142,5 +161,33 @@ ARExperience.prototype.updateRaycastRay = function() {
                 this.raycasterLine.geometry.attributes.position.needsUpdate = true;
             }
         }
+    }
+};
+
+// ✅ MINIMAL ADDITION: Debug function for troubleshooting raycaster issues
+ARExperience.prototype.debugRaycaster = function() {
+    console.log('=== RAYCASTER DEBUG INFO ===');
+    console.log('Controller exists:', !!this.controller);
+    console.log('Raycaster line exists:', !!this.raycasterLine);
+    console.log('Ray length:', this.rayLength);
+    console.log('Interactive models count:', this.modelInteractions ? this.modelInteractions.size : 0);
+    
+    if (this.controller) {
+        console.log('Controller position:', this.controller.position);
+        console.log('Controller visible:', this.controller.visible);
+        console.log('Controller children:', this.controller.children.length);
+        console.log('Ray in controller children:', this.controller.children.includes(this.raycasterLine));
+    }
+    
+    if (this.raycasterLine) {
+        console.log('Ray color:', this.raycasterLine.material.color);
+        console.log('Ray geometry points:', this.raycasterLine.geometry.attributes.position ? this.raycasterLine.geometry.attributes.position.count : 'none');
+    }
+    
+    if (this.modelInteractions && this.modelInteractions.size > 0) {
+        console.log('Interactive models:');
+        this.modelInteractions.forEach((data, model) => {
+            console.log(`- ${model.name || 'unnamed'}: active=${data.active}, visible=${model.visible}`);
+        });
     }
 };

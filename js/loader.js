@@ -7,27 +7,18 @@ class ARExperience {
         this.renderer = null;
         this.session = null;
         
-        // Models
+        // Models - ✅ ONLY REMOVED CLEARLY UNUSED ONES
         this.startButtonModel = null;
-        this.pauseButtonModel = null;
         this.nextButtonModel = null;
         this.quitButtonModel = null;
-        this.laptopModel = null;
-        this.wendy = null;
-        this.mendy = null;
-        this.tableModel = null;     
-        
-        // Audio
-        this.wendyAudio_1 = null;
-        this.wendyAudio_2 = null;
-        
-        // State
+   
+        // State - ✅ KEPT EXACTLY THE SAME
         this.experienceStarted = false;
         this.isXRActive = false;
         this.isPaused = false;
         this.currentScene = null;
         
-        // Loading state
+        // Loading state - ✅ KEPT EXACTLY THE SAME
         this.loadingStates = {
             scene1: false,
             scene2: false,
@@ -35,15 +26,18 @@ class ARExperience {
             scene4: false
         };
         
-        // For managing interactive objects
+        // For managing interactive objects - ✅ KEPT EXACTLY THE SAME
         this.modelInteractions = new Map();
 
-        //Raycaster for XR interaction
+        //Raycaster for XR interaction - ✅ KEPT EXACTLY THE SAME
         this.raycasterLine = null;
         this.rayLength = 5; // Length of visible ray in meters  
 
         this.mixers = [];
         this.clock = new THREE.Clock();
+
+        // ✅ MINIMAL ADDITION: Make debuggable
+        window.debugAR = this;
 
         this.init();
     }
@@ -177,68 +171,65 @@ class ARExperience {
         }
     }
 
-  // SCENE 1 RESOURCES (Essential - loaded first)
-async loadScene1Resources() {
-    const loader = new THREE.GLTFLoader();
-    
-    const loadGLB = (path, name) => {
-        return new Promise((resolve, reject) => {
-            loader.load(
-                path,
-                (gltf) => {
-                    console.log(`✅ Loaded: ${name}`);
-                    resolve(gltf);
-                },
-                (progress) => {
-                    const percent = Math.round((progress.loaded / progress.total) * 100);
-                    this.updateLoadingProgress(`Loading ${name}: ${percent}%`, percent);
-                },
-                (error) => {
-                    console.error(`❌ Failed to load ${path}:`, error);
-                    reject(error);
-                }
-            );
-        });
-    };
-
-    try {
-        console.log('📦 Loading Scene 1 (Essential) Resources...');
+    // SCENE 1 RESOURCES (Essential - loaded first)
+    async loadScene1Resources() {
+        const loader = new THREE.GLTFLoader();
         
-        // Scene 1 Models (blocking - needed immediately)
-        this.startButtonModelGLB = await loadGLB('./assets/models/startButtonModel.glb', 'Start Button');
-        this.startButtonModel = this.startButtonModelGLB.scene;
-        
-     
-       this.wendyJumpGLB = await loadGLB('./assets/models/wendyJump.glb', 'WendyJump');
-       this.wendyJump = this.wendyJumpGLB.scene;
+        const loadGLB = (path, name) => {
+            return new Promise((resolve, reject) => {
+                loader.load(
+                    path,
+                    (gltf) => {
+                        console.log(`✅ Loaded: ${name}`);
+                        resolve(gltf);
+                    },
+                    (progress) => {
+                        const percent = Math.round((progress.loaded / progress.total) * 100);
+                        this.updateLoadingProgress(`Loading ${name}: ${percent}%`, percent);
+                    },
+                    (error) => {
+                        console.error(`❌ Failed to load ${path}:`, error);
+                        reject(error);
+                    }
+                );
+            });
+        };
 
+        try {
+            console.log('📦 Loading Scene 1 (Essential) Resources...');
+            
+            // Scene 1 Models (blocking - needed immediately)
+            this.startButtonModelGLB = await loadGLB('./assets/models/startButtonModel.glb', 'Start Button');
+            this.startButtonModel = this.startButtonModelGLB.scene;
+            
+            this.wendyJumpGLB = await loadGLB('./assets/models/wendyJump.glb', 'WendyJump');
+            this.wendyJump = this.wendyJumpGLB.scene;
 
-       this.wendyNTModelGLB = await loadGLB('./assets/models/wendyNTModel.glb', 'WendyNT');
-       this.wendyNTModel = this.wendyNTModelGLB.scene;
+            this.wendyNTModelGLB = await loadGLB('./assets/models/wendyNTModel.glb', 'WendyNT');
+            this.wendyNTModel = this.wendyNTModelGLB.scene;
 
-       // ADD WENDY NO JUMP FOR SCENE 3
-       this.wendyNoMoveGLB = await loadGLB('./assets/models/Wendy-no-move.glb', 'Wendy No Move');
-       this.wendyNoMove = this.wendyNoMoveGLB.scene;
+            // Load Wendy-no-move for scene 3
+            this.wendyNoMoveGLB = await loadGLB('./assets/models/Wendy-no-move.glb', 'Wendy No Move');
+            this.wendyNoMove = this.wendyNoMoveGLB.scene;
 
-        this.nextButtonModelGLB = await loadGLB('./assets/models/nextButtonModel.glb', 'Next Button');
-        this.nextButtonModel = this.nextButtonModelGLB.scene;
+            this.nextButtonModelGLB = await loadGLB('./assets/models/nextButtonModel.glb', 'Next Button');
+            this.nextButtonModel = this.nextButtonModelGLB.scene;
 
-        // ADD QUIT BUTTON TO ESSENTIAL LOADING - needed for Scene 4
-        this.quitButtonModelGLB = await loadGLB('./assets/models/Complete_button.glb', 'Quit Button');
-        this.quitButtonModel = this.quitButtonModelGLB.scene;
+            // ADD QUIT BUTTON TO ESSENTIAL LOADING - needed for Scene 4
+            this.quitButtonModelGLB = await loadGLB('./assets/models/Complete_button.glb', 'Quit Button');
+            this.quitButtonModel = this.quitButtonModelGLB.scene;
 
-        // Scene 1 Audio (essential)
-        this.audioIntroMsg = new Audio('./assets/audio/audioIntroMsg.mp3');
-        this.audioFarewell = new Audio('./assets/audio/audioFarewellMsg.mp3'); 
-        this.loadingStates.scene1 = true;
-        console.log('✅ Scene 1 resources loaded - app ready to start');
-        
-    } catch (error) {
-        console.error('❌ Scene 1 loading failed:', error);
-        throw error;
+            // Scene 1 Audio (essential)
+            this.audioIntroMsg = new Audio('./assets/audio/audioIntroMsg.mp3');
+            this.audioFarewell = new Audio('./assets/audio/audioFarewellMsg.mp3'); 
+            this.loadingStates.scene1 = true;
+            console.log('✅ Scene 1 resources loaded - app ready to start');
+            
+        } catch (error) {
+            console.error('❌ Scene 1 loading failed:', error);
+            throw error;
+        }
     }
-}
-
 
     // Load remaining scenes in background (non-blocking)
     async loadRemainingResources() {
@@ -363,8 +354,7 @@ async loadScene1Resources() {
             console.log('📦 Loading Scene 3 Resources...');
             
             // Load Scene 3 models in parallel
-           const scene3Loads = [
-                //loadGLB('./assets/models/wendyNTModel.glb', 'Wendy'),
+            const scene3Loads = [
                 loadGLB('./assets/models/A_bird.glb', 'A_bird'),
                 loadGLB('./assets/models/B_laptop.glb', 'B_laptop'),
                 loadGLB('./assets/models/C_sofa.glb', 'C_sofa'),
@@ -379,13 +369,11 @@ async loadScene1Resources() {
              this.D_parkGLB, this.Quiz_text1GLB] = results;
             
             // Extract scenes
-            //this.Wendy = this.wendyNTModelGLB.scene;
             this.A_bird = this.A_birdGLB.scene;
             this.B_laptop = this.B_laptopGLB.scene;
             this.C_sofa = this.C_sofaGLB.scene;
             this.D_park = this.D_parkGLB.scene;
             this.Quiz_text1 = this.Quiz_text1GLB.scene;
-           
 
             // Scene 3 Audio
             this.audioQuizIntro = new Audio('./assets/audio/audioQuizIntro.mp3');
@@ -394,30 +382,32 @@ async loadScene1Resources() {
             
             this.loadingStates.scene3 = true;
             console.log('✅ Scene 3 resources loaded');
+            
+            // Debug logging for animations
             console.log('=== CHECKING QUIZ MODEL ANIMATIONS ===');
-if (this.A_birdGLB && this.A_birdGLB.animations) {
-    console.log('A_bird animations:', this.A_birdGLB.animations.map(anim => anim.name));
-} else {
-    console.log('A_bird: No animations found');
-}
+            if (this.A_birdGLB && this.A_birdGLB.animations) {
+                console.log('A_bird animations:', this.A_birdGLB.animations.map(anim => anim.name));
+            } else {
+                console.log('A_bird: No animations found');
+            }
 
-if (this.B_laptopGLB && this.B_laptopGLB.animations) {
-    console.log('B_laptop animations:', this.B_laptopGLB.animations.map(anim => anim.name));
-} else {
-    console.log('B_laptop: No animations found');
-}
+            if (this.B_laptopGLB && this.B_laptopGLB.animations) {
+                console.log('B_laptop animations:', this.B_laptopGLB.animations.map(anim => anim.name));
+            } else {
+                console.log('B_laptop: No animations found');
+            }
 
-if (this.C_sofaGLB && this.C_sofaGLB.animations) {
-    console.log('C_sofa animations:', this.C_sofaGLB.animations.map(anim => anim.name));
-} else {
-    console.log('C_sofa: No animations found');
-}
+            if (this.C_sofaGLB && this.C_sofaGLB.animations) {
+                console.log('C_sofa animations:', this.C_sofaGLB.animations.map(anim => anim.name));
+            } else {
+                console.log('C_sofa: No animations found');
+            }
 
-if (this.D_parkGLB && this.D_parkGLB.animations) {
-    console.log('D_park animations:', this.D_parkGLB.animations.map(anim => anim.name));
-} else {
-    console.log('D_park: No animations found');
-}
+            if (this.D_parkGLB && this.D_parkGLB.animations) {
+                console.log('D_park animations:', this.D_parkGLB.animations.map(anim => anim.name));
+            } else {
+                console.log('D_park: No animations found');
+            }
         } catch (error) {
             console.warn('⚠️ Scene 3 loading failed:', error);
         }
@@ -433,32 +423,21 @@ if (this.D_parkGLB && this.D_parkGLB.animations) {
                     reject(error);
                 });
             });
-    };
+        };
 
-    try {
-        console.log('📦 Loading Scene 4 Resources...');        
-        
-        const scene4Loads = [
-            // loadGLB('./assets/models/pauseButtonModel.glb', 'Pause Button'),
-            // loadGLB('./assets/models/nextButtonModel.glb', 'Next Button'),
-            // loadGLB('./assets/models/wendyNTModel.glb', 'WendyNT'),            
-        ];
-    if (scene4Loads.length > 0) {
-        const results = await Promise.all(scene4Loads);
-    }    
-        // Assign results (quit button removed)
-        // [this.pauseButtonModelGLB, this.wendyNTModelGLB] = results;
-        
-        // Extract scenes (quit button removed)
-        // this.pauseButtonModel = this.pauseButtonModelGLB.scene;
-        // this.nextButtonModel = this.nextButtonModelGLB.scene;  
-        // this.wendy = this.wendyNTModelGLB.scene;    
-        
-        // this.audioFarewell = new Audio('./assets/audio/audioFarewellMsg.mp3');
-        
-        this.loadingStates.scene4 = true;
-        console.log('✅ Scene 4 resources loaded');
-        
+        try {
+            console.log('📦 Loading Scene 4 Resources...');        
+            
+            const scene4Loads = [
+                // No additional models needed for scene 4
+            ];
+            if (scene4Loads.length > 0) {
+                const results = await Promise.all(scene4Loads);
+            }    
+            
+            this.loadingStates.scene4 = true;
+            console.log('✅ Scene 4 resources loaded');
+            
         } catch (error) {
             console.warn('⚠️ Scene 4 loading failed:', error);
         }
@@ -487,7 +466,7 @@ if (this.D_parkGLB && this.D_parkGLB.animations) {
                     this.isXRActive = true;                  
 
                     // Create raycaster line for controller when in AR/VR mode
-                     if (this.session) {  // If we're in AR/VR mode
+                    if (this.session) {  // If we're in AR/VR mode
                         // Set up XR controller
                         this.controller = this.renderer.xr.getController(0);
                         this.scene.add(this.controller);
@@ -579,215 +558,7 @@ if (this.D_parkGLB && this.D_parkGLB.animations) {
             };
         }
     }
-  
 
-// Separate method for controller select handling
-// handleControllerSelect(controller, event) {
-//     console.log('handleControllerSelect called');
-    
-//     // Check if controller has valid pose
-//     const frame = this.renderer.xr.getFrame();
-//     if (!frame) {
-//         console.warn('No XR frame available');
-//         return;
-//     }
-
-//     const referenceSpace = this.renderer.xr.getReferenceSpace();
-//     if (!referenceSpace) {
-//         console.warn('No reference space available');
-//         return;
-//     }
-
-//     // Get controller pose from input source
-//     const inputSource = event.inputSource;
-//     if (inputSource && inputSource.targetRaySpace) {
-//         const targetRayPose = frame.getPose(inputSource.targetRaySpace, referenceSpace);
-        
-//         if (targetRayPose) {
-//             console.log('Using input source target ray pose');
-            
-//             // Create raycaster from controller pose
-//             const tempMatrix = new THREE.Matrix4();
-//             tempMatrix.fromArray(targetRayPose.transform.matrix);
-            
-//             const controllerRaycaster = new THREE.Raycaster();
-//             controllerRaycaster.ray.origin.setFromMatrixPosition(tempMatrix);
-            
-//             // Extract rotation and apply to direction
-//             const rotationMatrix = new THREE.Matrix4();
-//             rotationMatrix.extractRotation(tempMatrix);
-//             controllerRaycaster.ray.direction.set(0, 0, -1).applyMatrix4(rotationMatrix).normalize();
-            
-//             // Check for interactions
-//             this.checkInteractions(controllerRaycaster);
-//         } else {
-//             console.warn('No target ray pose available');
-//             this.fallbackControllerInteraction(controller);
-//         }
-//     } else {
-//         console.warn('No input source or target ray space, using fallback');
-//         this.fallbackControllerInteraction(controller);
-//     }
-// }
-
-// Fallback method when pose data isn't available
-// fallbackControllerInteraction(controller) {
-//     // Fallback: use controller matrix world
-//     const tempMatrix = new THREE.Matrix4();
-//     tempMatrix.identity().extractRotation(controller.matrixWorld);
-    
-//     const controllerRaycaster = new THREE.Raycaster();
-//     controllerRaycaster.ray.origin.setFromMatrixPosition(controller.matrixWorld);
-//     controllerRaycaster.ray.direction.set(0, 0, -1).applyMatrix4(tempMatrix);
-    
-//     console.log('Using fallback controller interaction');
-//     this.checkInteractions(controllerRaycaster);
-// }
-
-// Extract mouse/touch interaction setup
-setupMouseTouchInteraction() {
-    if (!this.modelInteractionHandlerActive) {
-        this.modelInteractionHandlerActive = true;
-        
-        // Set up shared raycaster for interactions
-        this.interactionRaycaster = new THREE.Raycaster();
-        this.interactionPointer = new THREE.Vector2();
-        
-        // Track pointer for click vs. drag detection
-        let pointerStartX = 0;
-        let pointerStartY = 0;
-        let isDragging = false;
-        
-        // Set up pointer event handlers
-        const handlePointerDown = (event) => {
-            pointerStartX = event.clientX;
-            pointerStartY = event.clientY;
-            isDragging = false;
-        };
-        
-        const handlePointerMove = (event) => {
-            if (!isDragging) {
-                const deltaX = Math.abs(event.clientX - pointerStartX);
-                const deltaY = Math.abs(event.clientY - pointerStartY);
-                if (deltaX > 5 || deltaY > 5) {
-                    isDragging = true;
-                }
-            }
-        };
-        
-        const handlePointerUp = (event) => {
-            if (!isDragging) {
-                this.interactionPointer.x = (event.clientX / window.innerWidth) * 2 - 1;
-                this.interactionPointer.y = -(event.clientY / window.innerHeight) * 2 + 1;
-                this.interactionRaycaster.setFromCamera(this.interactionPointer, this.camera);
-                this.checkInteractions(this.interactionRaycaster);
-            }
-        };
-        
-        // Add event listeners
-        document.addEventListener('pointerdown', handlePointerDown);
-        document.addEventListener('pointermove', handlePointerMove);
-        document.addEventListener('pointerup', handlePointerUp);
-        
-        // Store handlers for cleanup
-        this.interactionHandlers = {
-            pointerDown: handlePointerDown,
-            pointerMove: handlePointerMove,
-            pointerUp: handlePointerUp
-        };
-    }
-}
-
-// Debug method to check controller status
-// debugControllers() {
-//     if (!this.session) {
-//         console.log('No XR session active');
-//         return;
-//     }
-
-//     console.log('=== Controller Debug Info ===');
-//     console.log('Input sources count:', this.session.inputSources.length);
-    
-//     this.session.inputSources.forEach((inputSource, index) => {
-//         console.log(`Input Source ${index}:`, {
-//             handedness: inputSource.handedness,
-//             targetRayMode: inputSource.targetRayMode,
-//             profiles: inputSource.profiles,
-//             hasTargetRaySpace: !!inputSource.targetRaySpace,
-//             hasGripSpace: !!inputSource.gripSpace
-//         });
-//     });
-
-//     if (this.controllers) {
-//         console.log('Controller objects:', this.controllers.length);
-//         this.controllers.forEach((controller, index) => {
-//             console.log(`Controller ${index}:`, {
-//                 visible: controller.visible,
-//                 hasMatrixWorld: !!controller.matrixWorld,
-//                 position: controller.position
-//             });
-//         });
-//     }
-
-//     // Test raycaster setup
-//     if (this.raycasterLine) {
-//         console.log('Raycaster line exists:', !!this.raycasterLine);
-//         }
-//     }
-
-    // Update the ray visualization method (improved)
-    // updateRaycastRay() {
-    //     if (!this.raycasterLine || !this.controllers || !this.controllers[0]) return;
-
-    //     const frame = this.renderer.xr.getFrame();
-    //     if (!frame) return;
-
-    //     const referenceSpace = this.renderer.xr.getReferenceSpace();
-    //     if (!referenceSpace) return;
-
-    //     // Try to get controller input source
-    //     const inputSources = this.session.inputSources;
-    //     let targetRayPose = null;
-
-    //     for (const inputSource of inputSources) {
-    //         if (inputSource.targetRaySpace) {
-    //             targetRayPose = frame.getPose(inputSource.targetRaySpace, referenceSpace);
-    //             if (targetRayPose) break;
-    //         }
-    //     }
-
-    //     if (targetRayPose) {
-    //         // Update ray from input source pose
-    //         const matrix = new THREE.Matrix4().fromArray(targetRayPose.transform.matrix);
-    //         const position = new THREE.Vector3().setFromMatrixPosition(matrix);
-            
-    //         const rotationMatrix = new THREE.Matrix4().extractRotation(matrix);
-    //         const direction = new THREE.Vector3(0, 0, -1).applyMatrix4(rotationMatrix).normalize();
-
-    //         const endPoint = position.clone().add(direction.multiplyScalar(this.rayLength));
-            
-    //         const positions = this.raycasterLine.geometry.attributes.position;
-    //         positions.setXYZ(0, position.x, position.y, position.z);
-    //         positions.setXYZ(1, endPoint.x, endPoint.y, endPoint.z);
-    //         positions.needsUpdate = true;
-    //     } else {
-    //         // Fallback to controller matrix world
-    //         const controller = this.controllers[0];
-    //         if (controller.visible) {
-    //             const position = new THREE.Vector3().setFromMatrixPosition(controller.matrixWorld);
-    //             const tempMatrix = new THREE.Matrix4().extractRotation(controller.matrixWorld);
-    //             const direction = new THREE.Vector3(0, 0, -1).applyMatrix4(tempMatrix).normalize();
-    //             const endPoint = position.clone().add(direction.multiplyScalar(this.rayLength));
-                
-    //             const positions = this.raycasterLine.geometry.attributes.position;
-    //             positions.setXYZ(0, position.x, position.y, position.z);
-    //             positions.setXYZ(1, endPoint.x, endPoint.y, endPoint.z);
-    //             positions.needsUpdate = true;
-    //         }
-    //     }
-    // }
-
-    // Simplified fallback camera controls for non-AR devices
     setupFallbackCameraControls() {
         // For non-AR devices - position camera for good view
         console.log('Setting up camera controls for non-AR mode');
@@ -846,7 +617,7 @@ setupMouseTouchInteraction() {
             this.idleMove(this.nextButtonModel, timestamp);
         }
         
-        // You can also animate Wendy and Mendy with different parameters
+        // Animate wendy and mendy if they exist
         if (this.wendy && this.wendy.visible) {
             this.idleMove(this.wendy, timestamp, 0.03, 0.001); // Slower, smaller movement
         }
@@ -870,6 +641,3 @@ setupMouseTouchInteraction() {
         this.renderer.render(this.scene, this.camera);
     }
 }
-
-
-

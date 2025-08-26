@@ -120,31 +120,26 @@ ARExperience.prototype.scene2 = function() {
         yOffset: 0.29  // Slightly below center
     });    
 
-    // ✅ KEPT YOUR EXACT POSITIONING - models in front, mendy behind
+    // NC: Use helper function to add multiple models
     this.addModelsToScene([
-        { name: 'cafeModelS3', y:1, z: -7 },        // IN FRONT
-        { name: 'doc1Model', y:1, z: -7 },          // IN FRONT
-        { name: 'wendyModel', y:1, z: -7 },         // IN FRONT
-        { name: 'mendyModel', y:1, z: 3 },          // BEHIND (positive Z)
-        { name: 'word1Model', y:1, z: -7 },         // IN FRONT
-        { name: 'word2Model', y:1, z: -7 },         // IN FRONT
-        { name: 'word3Model', y:1, z: -7 },         // IN FRONT
-        { name: 'sunglassesModel', y:1, z: -7 },    // IN FRONT
-        { name: 'wendyGlassesModelS3', y:1, z: -7}, // IN FRONT
+        { name: 'cafeModelS3', y:1, z: -7 },
+        { name: 'doc1Model', y:1, z: -7 },
+        { name: 'wendyModel', y:1, z: -7 },
+        { name: 'mendyModel', y:1, z: 3 },
+        { name: 'word1Model', y:1, z: -7 },
+        { name: 'word2Model', y:1, z: -7 },
+        { name: 'word3Model', y:1, z: -7 },
+        { name: 'sunglassesModel', y:1, z: -7 },
+        { name: 'wendyGlassesModelS3', y:1, z: -7},
     ]);       
     
     this.playback3D(this.scene2ModelAnimations, this.scene2AudioTracks, 0);
-
-    // // ✅ MINIMAL ADDITION: Manual Mendy animation trigger (since he's behind)
-    // setTimeout(() => {
-    //     console.log('🎭 Manually starting Mendy animation (behind user)...');
-    //     this.playModelAnimation('mendyModel', 'MendyAction');
-    // }, 30000); // 30 seconds - slightly before next button appears
 
     const estimatedDuration = 35000; // 35 seconds
     setTimeout(() => {       
         this.showNextButton('scene3');        
     }, estimatedDuration);
+    //}, 1000);  
 };
 
 ARExperience.prototype.scene3 = function() {    

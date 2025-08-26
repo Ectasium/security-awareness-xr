@@ -1,5 +1,8 @@
+<<<<<<< HEAD
 // loader.js - Main class initialization and WebXR setup with batched loading
 
+=======
+>>>>>>> d980ffd4886ac98500f528225f37b7b5caebefd4
 class ARExperience {
     constructor() {
         this.scene = null;
@@ -643,4 +646,8 @@ class ARExperience {
         
         this.renderer.render(this.scene, this.camera);
     }
+<<<<<<< HEAD
 }
+=======
+}
+>>>>>>> d980ffd4886ac98500f528225f37b7b5caebefd4

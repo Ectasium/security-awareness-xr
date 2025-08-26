@@ -70,6 +70,7 @@ ARExperience.prototype.scene1 = function() {
     });    
     
     this.playAudio('audioIntroMsg');
+<<<<<<< HEAD
     
     // IMPORTANT: Reset button parent and ensure it's in world space
     if (this.startButtonModel.parent) {
@@ -80,6 +81,12 @@ ARExperience.prototype.scene1 = function() {
     this.startButtonModel.position.set(0, 0, -2.5);  // Position in front
     this.startButtonModel.rotation.set(0, 0, 0); // Reset rotation
     this.startButtonModel.updateMatrixWorld(true); // Force update
+=======
+  
+    // this.startButtonModel.position.set(0, 0, 0);  // Reset first
+    this.startButtonModel.scale.set(1, 1, 1);
+    this.startButtonModel.position.set(0, 0, -1.5);  // Raised from 0 to 1.2
+>>>>>>> d980ffd4886ac98500f528225f37b7b5caebefd4
 
     this.scaleModel(this.startButtonModel, 1);
     this.scene.add(this.startButtonModel);  
@@ -97,6 +104,13 @@ ARExperience.prototype.scene1 = function() {
         this.playModelAnimation('wendyJump', 'Romy-WendyAction');
     }, 2000); // 2s delay just about for the jump
 
+<<<<<<< HEAD
+=======
+    this.playModelAnimation('wendyNTModel', 'Jumping', 'SMILE', 'talking');
+
+
+        
+>>>>>>> d980ffd4886ac98500f528225f37b7b5caebefd4
     this.makeModelClickable(this.startButtonModel, () => {
         this.moveModel("wendyJump", 
             {x: 1, y: 10, z: -6.5},  
@@ -324,4 +338,8 @@ ARExperience.prototype.clearScene = function() {
     this.mixers = [];
     
     console.log('✅ Scene cleared (XR components preserved)');
+<<<<<<< HEAD
 };
+=======
+};
+>>>>>>> d980ffd4886ac98500f528225f37b7b5caebefd4
